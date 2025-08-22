@@ -1,165 +1,64 @@
-# Generic enery transition dataset template
-TO DO: Replace this text with a very short description of the dataset. 
+# physiquant__unit variable naming convention
+The physiquant__unit variable naming convention for physical quantities in computer code encodes units as a postfix after a double underscore, using metric prefixes with proper capitalization, single underscores to separate compound units, and negative exponents for 'per' units in scientific notation preceded by an underscore.
 
 ## Table of contents
-* [General info](#general-info)
-* [Subject Recruitment](#recruitment)
-* [Inclusion criteria](#inclusion-criteria)
-* [Data](#data) 
+* [Motivation](#motivation)
+* [Rules](#rules)
+* [Examples](#examples)
 * [Status](#status)
 * [License](#license)
 * [Credits](#credits)
+* [References](#references)
 
-## General info
+## Motivation
 
-This is a template repository for a data set published by the Research Group Energy Transiton at Windesheim University of Applied Sciences. Replace items in this template with text appropriate for your repo.
+In the energy transition, physics is everywhere. Correctly handling *units* in code is essential to avoid bugs and misinterpretations. History has shown how costly unit mix-ups can be — for instance, [NASA’s Mars Climate Orbiter (1999) was lost due to a mix-up in units](https://mars.nasa.gov/mars-exploration/missions/polar-lander/).  
 
-## Recruitment 
+In energy software development, the same risks apply on a smaller scale: a megawatt (MW) wind turbine is vastly different from a milliwatt (mW) device. Mislabeling can lead to incorrect conclusions. To reduce this risk, and partly following the advice from [Naming Things in Code - YouTube](https://www.youtube.com/watch?v=-J3wNP6u5YU&t=156s), we propose a clear naming convention for encoding units directly in variable names.
 
-Replace this text that desribes how subjects were recruited, possibly including links to recruitment material used. 
+**NB:** We are aware of the scientific field of [dimensional analysis](https://en.wikipedia.org/wiki/Dimensional_analysis) and libraries that may help with dimension checking of physical quantities in your code, e.g. [pint](https://pint.readthedocs.io) (Python), [SI](https://github.com/bernedom/SI) (C++), but have not yet found (the time to develop) reliable ways of including these in our GEKKO-based analysis code.
 
-## Inclusion criteria
+## Rules
 
-Inclusion criteria were:
-* replace with inclusion criterion 1;
-* replace with inclusion criterion 2;
-* etc.
+- Use a double underscore (`__`) as a prefix for the unit, and attach the whole as as a postfix after the variable name.
+- Use **metric prefix symbols** (k, m, M, G) and units with proper capitalization (Hz, W, s).
+- For programming languages without Unicode support, use `u` instead of `µ`.
+- For **compound units**, separate factors by a single underscore (`_`); do *not* use multiplication signs.
+- Attach **positive exponents** directly after the unit (omit `1`), e.g. `m2` for suqare meters.
+- For **reciprocal notation**, use negative exponents with a preceding single underscore (`_`), e.g. `m_s_2`.
+- Avoid percentages (`%`). Express as fractions and end variable names with `__0` (suggesting unit^0).  
+- For **dimensionless metrics**, prefer an explicit "Watt per Watt" (`__W0`) or similar, which is more informative than `__0`.
+- For **cumulative values** (e.g. smart meter readings), use `_cum` before the unit (see example below).
+- For **categorical variables** (strings), use `__str`.
 
-## Data management
+## Examples
 
-TO DO: Replace this text with (links to) data management plan, privacy policy and (if applicable), DPIA.
+- Acceleration in m/s²:  
+  `acceleration__m_s_2`
 
-## Data
+- Smart meter reading of electricity use in kWh:  
+  `e_use_cum__kWh`
 
-In the sections below, the data pre-processing and data formats used in the data files will be described.
-
-### Subjects 
-
-TODO: describe
-
-### Measurement Devices 
-
-We used the following measurement device types to collect data. Some devices consisted of a main device and one or two satellite devices. 
-
-TO DO: Change the markdown table below as needed.
-
-| Source type                  | Category                                                | Main device repo                                                                                           | Sattelite device 2 repo                                                                          | Sattelite device 2 repo                                                                              |
-| ---------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `OpenTherm-Monitor`          | comfort + installation + occupancy                      | [twomes-opentherm-monitor-firmware](https://github.com/energietransitie/twomes-opentherm-monitor-firmware) |                                                                                                  |                                                                                                      |
-| `DSMR-P1-gateway`            | energy                                                  | [twomes-p1-gateway-firmware](https://github.com/energietransitie/twomes-p1-gateway-firmware)               |                                                                                                  |                                                                                                      |
-| `DSMR-P1-gateway-Tin`        | energy + comfort                                        | [twomes-p1-gateway-firmware](https://github.com/energietransitie/twomes-p1-gateway-firmware)               | [twomes-room-monitor-firmware](https://github.com/energietransitie/twomes-room-monitor-firmware) |                                                                                                      |
-| `DSMR-P1-gateway-TinTsTr`    | energy + comfort + installation                         | [twomes-p1-gateway-firmware](https://github.com/energietransitie/twomes-p1-gateway-firmware)               | [twomes-room-monitor-firmware](https://github.com/energietransitie/twomes-room-monitor-firmware) | [twomes-boiler-monitor-firmware](https://github.com/energietransitie/twomes-boiler-monitor-firmware) |
-| `DSMR-P1-gateway-TinTsTrCO2` | energy + comfort + installation + occupancy/ventilation | [twomes-p1-gateway-firmware](https://github.com/energietransitie/twomes-p1-gateway-firmware)               | [twomes-room-monitor-firmware](https://github.com/energietransitie/twomes-room-monitor-firmware) | [twomes-boiler-monitor-firmware](https://github.com/energietransitie/twomes-boiler-monitor-firmware) |
-
-### Date and time information
-
-All timestamps were measured in [Unix time](https://en.wikipedia.org/wiki/Unix_time) format, using device clocks regularly synchronized via NTP with the correct UTC time. Setting the local device clock to the proper UTC time via NTP was one of the first steps performed by the measurement devices after they were connected to the internet via the home Wi-Fi network of a subject. Each measurement device synchronized its device clock via NTP every 6 hours. Uploads of measurement data (which could contain more than one measurement) were timestamped both by the measurement device according to the local device clock and by the server. We did not yet check for deviations between the last device timestamp of a measurement upload and the upload timestamp at the server.
-
-Timestamps were converted to a timezone-aware `pandas.Timestamp` value, in the [Europe/Amsterdam](https://en.wikipedia.org/wiki/Time_in_the_Netherlands) timezone. In the csv files we use [ISO 8601 format with time offset](https://en.wikipedia.org/wiki/ISO_8601): `YYYY-MM-DDThh:mm:ss±hhmm`.
-
-### Raw measurements 
-Raw maasurements will be available in the folder [/raw-measurements/](/raw-measurements/), e.g.:
-
-- [twomes_raw_measurements.parquet](/raw-measurements/twomes_raw_measurements.parquet): a single [parquet](https://parquet.apache.org/) file with data for all subject ids;
-
-All measurement data is structured according to the table below. By importing the parquet variant using [pandas.read_parquet()](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_parquet.html), you automatically get a DataFrame wih the recommended indices and data types. 
-
-TO DO: Change the markdown table below as needed.
-
-| **Index/Column** | **Name**          | **Type**    | **Description**                                                      |
-| ---------------- | ----------------- | ----------- | -------------------------------------------------------------------- |
-| index            | `id`              | `category`  | unique code of the home                                              |
-| index            | `source_category` | `category`  | catewgory, e.g. device, cloud_feed, energy_query, batch-import       |
-| index            | `source_type`     | `category`  | [device type name](###measurement-devices) of the measurement device |
-| index            | `timestamp`       | `Timestamp` | start of the interval (timezone aware)                               |
-| index            | `property`        | `category`  | property name of the measurement                                     |
-| column           | `value`           | `object`    | value of the measurement                                             |
-| column           | `unit`            | `category`  | unit of the measurement value                                        |
-
-
-### Raw propertes 
-In the folder [/raw-properties/](/raw-properties/) we will make various measured properties available in an 'unstacked' format with each property in its own column and an appropriate datatype, e.g.:
-
-- [twomes_raw_properties.parquet](/raw-properties/twomes_raw_measurements.parquet): a single [parquet](https://parquet.apache.org/) file with data for all subject ids;
-
-All property data is structured according to the table below. By importing the parquet variant using [pandas.read_parquet()](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_parquet.html), you automatically get a DataFrame wih the recommended indices and data types. 
-
-TO DO: Change the markdown table below as needed.
-
-| **Index/Column** | **Name**                             | **Type**    | **Description**                                                      |
-| ---------------- | ------------------------------------ | ----------- | -------------------------------------------------------------------- |
-| index            | `id`                                 | `category`  | unique code of the home                                              |
-| index            | `source_category`                    | `category`  | catewgory, e.g. device, cloud_feed, energy_query, batch-import       |
-| index            | `source_type`                        | `category`  | [device type name](###measurement-devices) of the measurement device |
-| index            | `timestamp`                          | `Timestamp` | start of the interval (timezone aware)                               |
-| column           | property_1; see property table below | data_type_1 | measured value of this property                                      |
-| column           | property2                            | data_type_2 | measured value of this property                                      |
-| ...              | ...                                  | ...         | ...                                                                  |
-| column           | property_n                           | data_type_n | measured value of this property                                      |
-
-
-### Measured Properties 
-
-Below is a table that lists all properties that were measured, the data type in the [raw-properties](#raw-poperties) DataFrame, the measurement unit, the measurement interval, the source device and sensor that measured it, as well as the the property name and value format as retrieved from the Twomes database.
-
-TO DO: Change the markdown table below as needed.
-
-| Property   | Type      | Unit | Measurement interval \[h:mm:ss\] | Description       | Source Type                  | Sensor                                                 | Database property  | [Database format](https://en.wikipedia.org/wiki/Printf_format_string) |
-| ---------- | --------- | ---- | -------------------------------- | ----------------- | ---------------------------- | ------------------------------------------------------ | ------------------ | ------------------------------------------------------------ |
-| `co2__ppm` | `float32` | ppm  | 0:05:00                          | CO₂ concentration | `DSMR-P1-gateway-TinTsTrCO2` | [SCD41](https://sensirion.com/products/catalog/SCD41/) | `CO2concentration` | %d                                                           |
-
-Weather data was collected and geospatially interpolated using [HourlyHistoricWeather](https://github.com/stephanpcpeters/HourlyHistoricWeather) from the Royal Netherlands Meteorological Institute ([KNMI](https://www.knmi.nl/over-het-knmi/about)), based on average hourly values. 
-
-For all subject ids, we used the same location for geospatial interpolation of weather data:
-[`lat, lon = 52.xxxxx, 6.yyyyy`](https://www.openstreetmap.org/?mlat=52.xxxxx&mlon=6.yyyyy#map=17/52.xxxxx/6.yyyyy). Average values were converted from the source units to the units as indicated in the table below. 
-
-
-| Index/Column | Property         | Type        | Unit            | Measurement interval \[h:mm:ss\] | Description                       | Source Type | [Source property](https://www.daggegevens.knmi.nl/klimatologie/uurgegevens) | [Source value format](https://en.wikipedia.org/wiki/Printf_format_string) | Source unit                                        |
-| ------------ | ---------------- | ----------- | --------------- | -------------------------------- | --------------------------------- | ----------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
-| index        | `timestamp`      | `Timestamp` |                 |                                  | start of the measurement interval | KNMI        | `YYYMMDD`, `H`                                                              |                                                                           | H=1: 0:00:00 - 0:59:59; H=24: 23:00:00 - 23:59:59; |
-| column       | `temp_out__degC` | `float32`   | °C              | 1:00:00                          | outdoor temperature               | KNMI        | ` T`                                                                        | %d                                                                        | 0.1&nbsp;°C                                        |
-| column       | `wind__m_s_1`    | `float32`   | m/s             | 1:00:00                          | wind speed                        | KNMI        | ` FH`                                                                       | %d                                                                        | 0.1&nbsp;m/s                                       |
-| column       | `ghi__W_m_2`     | `float32`   | W/m<sup>2</sup> | 1:00:00                          | global horizontal irradiance      | KNMI        | ` Q`                                                                        | %d                                                                        | J/(h·cm<sup>2</sup>)                               |
-
-### Preprocessed data 
-TO DO: change preprocessing description below.
-
-Preprocessing of measurements from the measurement database was done using [get_preprocessed_homes_data()](https://github.com/energietransitie/twomes-twutility-inverse-grey-box-analysis/blob/main/data/extractor.py). Preprocessing steps include:
-
-- removal of duplicate measurements;
-- calculation of derived properties as a combination of other properties, as indicated in the column `Calculation` in the table below;
-- removal of absolute outliers, i.e measurement values smaller than the value in the column `Min` or larger than the value in the column `Max` in the table below;
-- removal of statistic outliers, i.e. measuremnt values with an absolute [z-score](https://en.wikipedia.org/wiki/Standard_score) higer than the value indicated in the `Sigma` column in he table below;
-- interpolation of measurements to intervals of 15 minutes (no interpolation between measurements that were 60 minutes apart or more);
-- All column values represent the average during the interval that starts at the timestamp indicated. 
-
-TO DO: Change the markdown table below.
-
-| **Index/  Column** | **Name**      | **Type**    | **Unit**        | **Description**                                     | **Calculation** |    Min |    Max | Sigma |
-| ------------------ | ------------- | ----------- | --------------- | --------------------------------------------------- | --------------- | -----: | -----: | ----: |
-| index              | `id`          | `Int16`     |                 | unique code of the home                             |                 | 000000 | 999999 |       |
-| index              | `timestamp`   | `Timestamp` |                 | start of the interpolated interval (timezone aware) |                 |        |        |       |
-| column             | `T_out__degC` | `float32`   | °C              | outdoor temperature                                 |                 |    -28 |     40 |       |
-| column             | `wind__m_s_1` | `float32`   | m/s             | wind speed                                          |                 |      0 |     35 |       |
-| column             | `ghi__W_m_2`  | `Int16`     | W/m<sup>2</sup> | global horizontal irradiance                        |                 |      0 |   1000 |       |
-| column             | `T_in__degC`  | `float32`   | °C              | indoor temperature                                  |                 |      0 |     40 |     3 |
+- Efficiency of a boiler, based on the higher heating value (HHV):  
+  `eta_boiler_hhv__W0`  
+  Here, `eta` denotes efficiency, `_hhv` specifies the reference basis (higher heating value), and `__W0` indicates a *dimensionless quantity* expressed as *Watt per Watt*. For example, an efficiency of 0.95 means 0.95 W useful output per 1 W input.
 
 ## Status
-Dataset is: _collected_, _anonimization-in-progress_
+Project is: _in progress_
 
 ## License
 This data is made available under the [CC BY 4.0](./LICENSE.md) by the [Research group Energy Transition, Windesheim University of Applied Sciences](https://windesheim.nl/energietransitie) 
 
 ## Credits
 
-Data collection was a joint effort of:
-* <contributor name 1> · [@Github_handle_1](https://github.com/<github_handle_1>) · Twitter [@Twitter_handle_1](https://twitter.com/<twitter_handle_1>)
-* <contributor name 2> · [@Github_handle_2](https://github.com/<github_handle_2>) · Twitter [@Twitter_handle_2](https://twitter.com/<twitter_handle_2>)
-* <contributor name 3> · [@Github_handle_3](https://github.com/<github_handle_3>) · Twitter [@Twitter_handle_3](https://twitter.com/<twitter_handle_3>)
-* etc. 
- 
-Thanks go to those who are the ultimate source of this dataset:
-* all anonymous subjects who volunteered to make their measurement data available
+Author: 
+* Henri ter Hofte · [@henriterhofte](https://github.com/henriterhofte) · Twitter [@HeNRGi](https://twitter.com/HeNRGi)
 
-We use and gratefully aknowlegde the efforts of the makers of the following source code and libraries:
-* [HourlyHistoricWeather](https://github.com/stephanpcpeters/HourlyHistoricWeather), by [@stephanpcpeters](https://github.com/stephanpcpeters), licensed under [an MIT-style licence](https://raw.githubusercontent.com/stephanpcpeters/HourlyHistoricWeather/master/historicdutchweather/LICENSE)
+## References
+
+- *Naming Things in Code* – [YouTube](https://www.youtube.com/watch?v=-J3wNP6u5YU&t=156s).  
+- Metric prefix symbols and rules – [Wikipedia: Metric prefix](https://en.wikipedia.org/wiki/Metric_prefix). 
+- [pint](https://github.com/hgrecco/pint), by Hernán E. Grecco et al., licensed under the [BSD license](https://github.com/hgrecco/pint/blob/master/LICENSE).  
+- [SI](https://github.com/bernedom/SI), by Dominik Berner, licensed under the [MIT license](https://github.com/bernedom/SI/blob/main/LICENSE).  
+
+
