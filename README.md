@@ -28,8 +28,24 @@ In energy software development, the same risks apply on a smaller scale: a megaw
 - For **reciprocal notation**, use negative exponents with a preceding single underscore (`_`), e.g. `m_s_2`.
 - Avoid percentages (`%`). Express as fractions and end variable names with `__0` (suggesting unit^0).  
 - For **dimensionless metrics**, prefer an explicit "Watt per Watt" (`__W0`) or similar, which is more informative than `__0`.
-- For **cumulative values** (e.g. smart meter readings), use `_cum` before the unit (see example below).
-- For **categorical variables** (strings), use `__str`.
+- For **cumulative values** (e.g. smart meter readings), use `_cum` before the unit (see example
+  below). This matters beyond bookkeeping: a meter reading is a **state at an instant**, whereas a
+  differenced value is an **average over an interval**. The two carry different units and belong to
+  different timestamps, and a name that does not distinguish them invites treating one as the other.
+- For **categorical variables** drawn from a fixed set of values, use `__cat`.
+- For **free text and identifiers**, which have no fixed set of values, use `__str`.
+- For **booleans**, use `__bool`. A `__bool` variable may be *nullable*: in `pandas` (`boolean`
+  dtype) and in Arrow/Parquet, a boolean column carries missing values natively. Use that rather
+  than a separate type when "unknown" is a meaningful third state — "we could not determine this"
+  is not the same as `False`, and collapsing the two with `fillna(False)` silently loses
+  information.
+
+### Scope
+
+The convention applies to variables **you** define. Data from an external source keeps the field
+names that source gave it, so that a value stays traceable to where it came from; the convention
+applies from the point where you translate it. Record that translation in a variable dictionary
+mapping each source field to its converted name, so the boundary is explicit rather than implied.
 
 ## Examples
 
@@ -38,6 +54,17 @@ In energy software development, the same risks apply on a smaller scale: a megaw
 
 - Smart meter reading of electricity use in kWh:  
   `e_use_cum__kWh`
+
+- Cumulative gas meter reading, and the average flow derived from it:  
+  `g_use_cum__m3` and `g_use__m3_s_1`  
+  The first is the position of the meter at one instant; the second is an average over the interval
+  between two readings. Only the second may be attached to an interval timestamp.
+
+- Whether a dwelling has underfloor heating, and whether a quality check found a problem:  
+  `has_floor_heating__bool` and `meter_reading_decreased__bool`  
+  Both are booleans, so both take `__bool`. The second may be `NA` where the question cannot be
+  answered — at a dwelling's first reading there is no previous reading to compare against, and
+  that is not the same as "no problem".
 
 - Efficiency of a boiler, based on the higher heating value (HHV):  
   `eta_boiler_hhv__W0`  
